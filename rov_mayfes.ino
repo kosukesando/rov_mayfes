@@ -6,7 +6,7 @@
 #include <ESP32Servo.h>
 #include "config.h"
 
-//ESP32の注意点として、書き込み時にBootボタンを押しっぱなしにしないとコンパイルエラーが出ることがある
+//ESP32の注意点として、書き込み時にBootボタンを押さないとコンパイルエラーが出ることがある
 //
 //参考
 //Example集: https://examples.blynk.cc/?board=ESP32&shield=ESP32%20WiFi&example=GettingStarted%2FVirtualPinWrite
