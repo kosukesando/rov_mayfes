@@ -22,17 +22,32 @@ char ssid[] = WIFI_SSID;
 char pass[] =  WIFI_PASSWORD;
 
 Servo servo1;
+Servo servo2;
+Servo servo3;
 const int maxUs = 1900;
 const int minUs = 1100;
-const int servo1Pin = 26;
+const int servo1Pin = 25;
 const int servo1Period = 50;
+const int servo2Pin = 26;
+const int servo2Period = 50;
+const int servo3Pin = 27;
+const int servo3Period = 50;
 
-const int led_pin = 14;    // GPIOのピン番号
-const int freq = 5000;     //PWMの周波数
-const int led_channel = 0; // ESP32はPWMチャンネルが任意のピンで16チャンネルまで設定できる
-const int resolution = 8;  //
+// const int led_pin = 14;    // GPIOのピン番号
+// const int freq = 5000;     //PWMの周波数
+// const int led_channel = 0; // ESP32はPWMチャンネルが任意のピンで16チャンネルまで設定できる
+// const int resolution = 8;  //
 
 int servo1Us = 1500;
+int servo2Us = 1500;
+int servo3Us = 1500;
+
+int turnClockAmount = 0;
+int forwardAmount = 0;
+float turnStrength = 1.0;
+float forwardStrength = 1.0;
+
+
 
 //アプリ側でVirtual Pinに書き込みがあるたびに呼ばれる関数
 //paramがV6に書き込まれたデータで、asInt()でInt型として処理 asFloatとかも色々ある
@@ -44,22 +59,48 @@ int servo1Us = 1500;
 
 BLYNK_WRITE(V8)
 {
-  servo1Us = param.asInt();
+  turnClockAmount = param.asInt();
+}
+
+BLYNK_WRITE(V9)
+{
+  forwardAmount = param.asInt();
+}
+
+BLYNK_WRITE(V11)
+{
+  turnStrength = param.asFloat();
+}
+
+BLYNK_WRITE(V12)
+{
+  forwardStrength = param.asFloat();
 }
 
 //BlynkTimer timer1;
 BlynkTimer timer2;
 
-void myTimerEvent()
-{
-  Blynk.virtualWrite(V5, millis() / 1000);
-}
 
 int count = 0;
 
+int curve1(int x)
+{
+  return 1500 + round(turnStrength*x);
+}
+
+int curve2(int x)
+{
+  return 1500 - round(forwardStrength*x);
+}
+
 void servoLoop()
 {
+  servo1Us = curve1(turnClockAmount);
+  servo2Us = curve1(-turnClockAmount);
+  servo3Us = curve2(forwardAmount);
   servo1.writeMicroseconds(servo1Us);
+  servo2.writeMicroseconds(servo2Us);
+  servo3.writeMicroseconds(servo3Us);
 }
 
 void setup()
@@ -73,9 +114,18 @@ void setup()
   ESP32PWM::allocateTimer(3);
   servo1.setPeriodHertz(servo1Period);
   servo1.attach(servo1Pin, minUs, maxUs);
+
+  servo2.setPeriodHertz(servo2Period);
+  servo2.attach(servo2Pin, minUs, maxUs);
+
+  servo3.setPeriodHertz(servo3Period);
+  servo3.attach(servo3Pin, minUs, maxUs);
+
+  delay(3000);
+
   servo1.writeMicroseconds(1500);
-  delay(5000);
-  servo1.writeMicroseconds(1500);
+  servo2.writeMicroseconds(1500);
+  servo3.writeMicroseconds(1500);
   Blynk.begin(auth, ssid, pass);
 
   //  ledcSetup(led_channel, freq, resolution);
