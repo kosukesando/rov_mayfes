@@ -26,26 +26,20 @@ Servo servo2;
 Servo servo3;
 const int maxUs = 1900;
 const int minUs = 1100;
-const int servo1Pin = 25;
+const int servo1Pin = 19;//表記はGPIO12
 const int servo1Period = 50;
-const int servo2Pin = 26;
+const int servo2Pin = 18;//表記は13
 const int servo2Period = 50;
-const int servo3Pin = 27;
+const int servo3Pin = 23;//表記は13
 const int servo3Period = 50;
-
-// const int led_pin = 14;    // GPIOのピン番号
-// const int freq = 5000;     //PWMの周波数
-// const int led_channel = 0; // ESP32はPWMチャンネルが任意のピンで16チャンネルまで設定できる
-// const int resolution = 8;  //
-
 int servo1Us = 1500;
 int servo2Us = 1500;
 int servo3Us = 1500;
 
 int turnClockAmount = 0;
 int forwardAmount = 0;
-float turnStrength = 1.0;
-float forwardStrength = 1.0;
+float turnStrength = 0.5;
+float forwardStrength = -0.7;
 
 
 
@@ -57,6 +51,13 @@ float forwardStrength = 1.0;
 //  ledcWrite(led_channel, dutycycle);
 //}
 
+void myTimerEvent()
+{
+  // You can send any value at any time.
+  // Please don't send more that 10 values per second.
+  Blynk.virtualWrite(V5, millis() / 1000);
+}
+
 BLYNK_WRITE(V8)
 {
   turnClockAmount = param.asInt();
@@ -67,21 +68,10 @@ BLYNK_WRITE(V9)
   forwardAmount = param.asInt();
 }
 
-BLYNK_WRITE(V11)
-{
-  turnStrength = param.asFloat();
-}
 
-BLYNK_WRITE(V12)
-{
-  forwardStrength = param.asFloat();
-}
-
-//BlynkTimer timer1;
+BlynkTimer timer1;
 BlynkTimer timer2;
 
-
-int count = 0;
 
 int curve1(int x)
 {
@@ -128,17 +118,13 @@ void setup()
   servo3.writeMicroseconds(1500);
   Blynk.begin(auth, ssid, pass);
 
-  //  ledcSetup(led_channel, freq, resolution);
-  //  ledcAttachPin(led_pin, led_channel);
-  //
-  //  // Setup a function to be called every second
-  //  timer1.setInterval(1000L, myTimerEvent);
+  timer1.setInterval(1000L, myTimerEvent);
   timer2.setInterval(20L, servoLoop);
 }
 
 void loop()
 {
   Blynk.run();
-  //  timer1.run(); // Initiates BlynkTimer
+   timer1.run(); // Initiates BlynkTimer
   timer2.run();
 }
